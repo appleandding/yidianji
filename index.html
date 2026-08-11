@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>意点机</title>
+
+    <!-- 1. PWA Web App 核心全屏与安装协议 -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="意点机">
+    <meta name="theme-color" content="#dcdfe3">
+    <meta name="application-name" content="意点机">
+
+    <!-- 动态 Manifest 脚本插入支持 -->
+    <link id="manifest-link" rel="manifest">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            background-color: #dcdfe3;
+        }
+
+        /* 可点击无框编辑文字 */
+        [contenteditable] {
+            outline: none !important;
+            box-shadow: none !important;
+            cursor: text;
+        }
+
+        /* 全屏主容器 */
+        .full-app-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            max-width: 430px;
+            margin: 0 auto;
+        }
+
+        /* 1. 顶部状态栏：悬浮无背景 */
+        .status-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: calc(42px + env(safe-area-inset-top, 0px));
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-left: 18px;
+            padding-right: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c2c2c;
+            z-index: 100;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            pointer-events: none;
+        }
+
+        .status-bar * {
+            pointer-events: auto;
+        }
+
+        .status-center-text {
+            font-size: 12px;
+            color: #444;
+            font-weight: normal;
+            text-align: center;
+            max-width: 160px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .status-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .battery-container {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .battery-icon {
+            width: 20px;
+            height: 10px;
+            border: 1.5px solid #2c2c2c;
+            border-radius: 3px;
+            padding: 1px;
+            position: relative;
+        }
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -3.5px;
+            top: 2.5px;
+            width: 2px;
+            height: 3.5px;
+            background: #2c2c2c;
+            border-radius: 0 1px 1px 0;
+        }
+        .battery-fill {
+            width: 100%;
+            height: 100%;
+            background: #2c2c2c;
+            border-radius: 1px;
+            transition: width 0.3s ease;
+        }
+
+        /* 2. 滑动屏容器 */
+        .screens-container {
+            flex: 1;
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+        }
+        .screens-container::-webkit-scrollbar { display: none; }
+
+        .page {
+            min-width: 100%;
+            height: 100%;
+            scroll-snap-align: start;
+            padding: calc(44px + env(safe-area-inset-top, 0px)) 16px 115px 16px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background-color: #dcdfe3;
+            background-size: cover;
+            background-position: center;
+            overflow-y: auto;
+        }
+
+        .widget {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .row-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* 第一页组件 */
+        .couple-widget {
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 18px;
+        }
+        .couple-avatars {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        .avatar-upload {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #e8e8e8;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #888;
+            font-size: 10px;
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+            overflow: hidden;
+        }
+        .couple-pills {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+        }
+        .pill {
+            flex: 1;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 4px 6px;
+            text-align: center;
+            font-size: 10px;
+            color: #444;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .photo-upload-box {
+            aspect-ratio: 1;
+            background: #ffffff;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding: 8px;
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 8px;
+        }
+        .app-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+        .app-icon {
+            width: 46px;
+            height: 46px;
+            background: #fff;
+            border-radius: 14px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.03);
+        }
+        .app-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: #333;
+        }
+        .app-label {
+            font-size: 10px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* 天使拟态玻璃组件 (60% 不透明度) */
+        .angel-glass-widget {
+            aspect-ratio: 1;
+            position: relative;
+            background: rgba(255, 255, 255, 0.45) !important;
+            backdrop-filter: blur(15px) !important;
+            -webkit-backdrop-filter: blur(15px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 18px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 3px;
+            padding: 8px;
+            cursor: pointer;
+        }
+        .angel-bg-layer {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.6;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .angel-glass-widget > *:not(.angel-bg-layer) {
+            z-index: 2;
+        }
+
+        .clock-widget {
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.6);
+            border: 1.5px solid rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 18px;
+        }
+
+        /* 第二页组件 */
+        .together-music-widget {
+            aspect-ratio: 1;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            padding: 2px;
+        }
+        .together-avatars {
+            display: flex;
+            gap: -4px;
+            position: relative;
+            z-index: 2;
+        }
+        .headphone-line {
+            position: absolute;
+            top: 12px;
+            width: 100%;
+            height: 24px;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .together-text {
+            font-size: 8px;
+            color: #555;
+            text-align: center;
+            margin: 1px 0;
+            z-index: 2;
+        }
+        .mini-player-card {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 5px 6px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            z-index: 2;
+        }
+        .player-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 7px;
+            color: #888;
+        }
+        .player-body {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+        .player-cover {
+            width: 28px;
+            height: 28px;
+            border-radius: 5px;
+            background: #e3e5e8;
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+            flex-shrink: 0;
+        }
+        .player-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .player-title { font-size: 8.5px; font-weight: bold; color: #333; }
+        .player-artist { font-size: 7px; color: #777; }
+        .player-progress {
+            width: 100%;
+            height: 2px;
+            background: #eee;
+            border-radius: 2px;
+            margin: 1px 0;
+            position: relative;
+        }
+        .player-progress-fill {
+            width: 40%;
+            height: 100%;
+            background: #666;
+            border-radius: 2px;
+        }
+        .player-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 4px;
+            font-size: 7px;
+            color: #555;
+        }
+
+        .stellarmoment-widget {
+            aspect-ratio: 1;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .stellar-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+        }
+        .stellar-tag {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 12px;
+            padding: 2px 7px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 9.5px;
+            color: #333;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+        }
+        .tag-hash {
+            background: #444;
+            color: #fff;
+            border-radius: 50%;
+            width: 14px;
+            height: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8.5px;
+            font-weight: bold;
+        }
+
+        .dual-photo-direct {
+            aspect-ratio: 1;
+            display: flex;
+            gap: 8px;
+            background: transparent;
+            width: 100%;
+            height: 100%;
+        }
+        .photo-slot-vertical {
+            flex: 1;
+            height: 100%;
+            background: #ffffff;
+            border-radius: 16px;
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+
+        .diary-widget {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.02);
+        }
+        .diary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            color: #333;
+        }
+        .diary-user {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .diary-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #888;
+            cursor: pointer;
+            background-size: cover;
+        }
+        .diary-content {
+            font-size: 11px;
+            color: #333;
+            line-height: 1.3;
+        }
+        .diary-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 9.5px;
+            color: #888;
+            padding-top: 2px;
+        }
+
+        /* 3. 拟态玻璃底栏 Dock */
+        .dock-bar {
+            position: fixed;
+            bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+            left: 14px;
+            right: 14px;
+            max-width: 402px;
+            margin: 0 auto;
+            height: 58px;
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 28px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 8px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+        .dock-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+        .dock-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .dock-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: #333;
+        }
+
+        /* 4. 拟态玻璃搜索栏（含 ◆ 壁纸更换按钮） */
+        .search-container {
+            position: fixed;
+            bottom: calc(82px + env(safe-area-inset-bottom, 0px));
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 90;
+        }
+        .search-btn {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 18px;
+            padding: 5px 18px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #333;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.03);
+            border: 1px solid rgba(255,255,255,0.75);
+        }
+
+        .bg-change-diamond {
+            cursor: pointer;
+            padding: 2px 4px;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+        .bg-change-diamond:active { transform: scale(1.2); }
+
+        .widget-tag {
+            font-size: 9px;
+            color: #777;
+            text-align: center;
+            margin-top: -6px;
+            margin-bottom: 2px;
+        }
+
+        #global-file-input, #main-bg-file-input, #angel-bg-file-input { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="full-app-container">
+    <input type="file" id="global-file-input" accept="image/*">
+    <input type="file" id="main-bg-file-input" accept="image/*">
+    <input type="file" id="angel-bg-file-input" accept="image/*">
+
+    <!-- 1. 顶部状态栏 -->
+    <div class="status-bar">
+        <span id="status-time">--:--</span>
+        <div class="status-center-text" contenteditable="true" data-text-id="status_center">₍^˶ ╸𖥦  ╸˵^₎⟆</div>
+        <div class="status-right">
+            <svg width="15" height="13" viewBox="0 0 18 14" fill="#2c2c2c">
+                <rect x="0" y="10" width="3" height="4" rx="0.5"/>
+                <rect x="5" y="7" width="3" height="7" rx="0.5"/>
+                <rect x="10" y="3.5" width="3" height="10.5" rx="0.5"/>
+                <rect x="15" y="0" width="3" height="14" rx="0.5"/>
+            </svg>
+
+            <div class="battery-container">
+                <span id="battery-text">--%</span>
+                <div class="battery-icon">
+                    <div class="battery-fill" id="battery-fill"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 滑动页面容器 -->
+    <div class="screens-container" id="screens">
+        
+        <!-- ==================== 第一页 ==================== -->
+        <div class="page" id="page-1">
+            <div class="widget couple-widget">
+                <div class="couple-avatars">
+                    <div class="avatar-upload js-upload-target" data-img-id="img_couple_er">Her</div>
+                    <div style="margin: 0 6px; font-size: 9px; color:#888;">♥</div>
+                    <div class="avatar-upload js-upload-target" data-img-id="img_couple_her">Her</div>
+                </div>
+                <div class="couple-pills">
+                    <div class="pill" contenteditable="true" data-text-id="pill_1">我亲亲你</div>
+                    <div class="pill" contenteditable="true" data-text-id="pill_2">我也亲亲你</div>
+                </div>
+            </div>
+            <div class="widget-tag">Colorful Widget</div>
+
+            <div class="row-grid">
+                <div class="photo-upload-box js-upload-target" data-img-id="img_photo_p1">
+                    <span contenteditable="true" data-text-id="photo_p1_text" style="z-index:2; font-size:11px; color:#444;">..∪ ◡ ∪..</span>
+                </div>
+                <div class="app-grid">
+                    <div class="app-item">
+                        <div class="app-icon">
+                            <svg viewBox="0 0 24 24"><path d="M8.5 4C4.8 4 1.8 6.5 1.8 9.6c0 1.8 1 3.4 2.6 4.4l-.6 2.2 2.5-1.3c.7.2 1.4.3 2.2.3 3.7 0 6.7-2.5 6.7-5.6S12.2 4 8.5 4zm7.5 7c-3.1 0-5.6 2-5.6 4.5s2.5 4.5 5.6 4.5c.6 0 1.2-.1 1.8-.3l2 1-.5-1.8c1.3-.8 2.1-2.1 2.1-3.4 0-2.5-2.5-4.5-5.4-4.5z"/></svg>
+                        </div>
+                        <span class="app-label" contenteditable="true" data-text-id="app_1_1">We chat</span>
+                    </div>
+                    <div class="app-item">
+                        <div class="app-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+                        </div>
+                        <span class="app-label" contenteditable="true" data-text-id="app_1_2">世界书</span>
+                    </div>
+                    <div class="app-item">
+                        <div class="app-icon">
+                            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm6 12H6v-1c0-2 4-3.1 6-3.1s6 1.1 6 3.1v1z"/></svg>
+                        </div>
+                        <span class="app-label" contenteditable="true" data-text-id="app_1_3">个人资料</span>
+                    </div>
+                    <div class="app-item">
+                        <div class="app-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm-1-13h2v3h-2zm0 5h2v5h-2z"/></svg>
+                        </div>
+                        <span class="app-label" contenteditable="true" data-text-id="app_1_4">预言ta</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row-grid">
+                <!-- 主页一第 3 组件：天使拟态玻璃组件 (点击空白处选择背景，60% 不透明度) -->
+                <div class="widget angel-glass-widget" id="angel-widget">
+                    <div class="angel-bg-layer" id="angel-bg-layer"></div>
+
+                    <div class="avatar-upload js-upload-target" data-img-id="img_angel_avatar" style="width:44px; height:44px;"></div>
+                    <span contenteditable="true" data-text-id="angel_name" style="font-size: 10.5px; font-weight: bold; color: #333; margin-top:2px;">user</span>
+                    <span contenteditable="true" data-text-id="angel_tag" style="font-size: 8.5px; color: #555;">天使</span>
+                </div>
+
+                <div class="widget clock-widget">
+                    <div class="clock-title" contenteditable="true" data-text-id="clock_title" style="font-size:9.5px; color:#555;">语妳相伴共</div>
+                    <div class="clock-digits" style="font-size:30px; font-weight:300; color:#333;">1314</div>
+                </div>
+            </div>
+            <div class="row-grid">
+                <div class="widget-tag">Colorful Widget</div>
+                <div class="widget-tag">Colorful Widget</div>
+            </div>
+        </div>
+
+        <!-- ==================== 第二页 ==================== -->
+        <div class="page" id="page-2">
+            <div class="row-grid">
+                <div class="together-music-widget">
+                    <svg class="headphone-line" viewBox="0 0 160 40">
+                        <path d="M 38 10 Q 22 28 38 32" fill="none" stroke="#555" stroke-width="1.2"/>
+                        <path d="M 122 10 Q 138 28 122 32" fill="none" stroke="#555" stroke-width="1.2"/>
+                    </svg>
+
+                    <div class="together-avatars">
+                        <div class="avatar-upload js-upload-target" data-img-id="img_together_1" style="width:30px; height:30px;"></div>
+                        <div class="avatar-upload js-upload-target" data-img-id="img_together_2" style="width:30px; height:30px; margin-left:-5px;"></div>
+                    </div>
+
+                    <div class="together-text" contenteditable="true" data-text-id="together_text">
+                        TA就在你身边，一起听歌 1314 天
+                    </div>
+
+                    <div class="mini-player-card">
+                        <div class="player-top-bar">
+                            <span>New Playing</span>
+                            <span>♡ 🔋 ⤓ •••</span>
+                        </div>
+                        <div class="player-body">
+                            <div class="player-cover js-upload-target" data-img-id="img_player_cover"></div>
+                            <div class="player-info">
+                                <div class="player-title" contenteditable="true" data-text-id="player_title">恋爱 •.• ʚ ɞ •.</div>
+                                <div class="player-artist" contenteditable="true" data-text-id="player_artist">:) RanWan★, .*</div>
+                                <div class="player-progress"><div class="player-progress-fill"></div></div>
+                                <div class="player-controls">⏮ ⏯ ⏭</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stellarmoment-widget">
+                    <div class="avatar-upload js-upload-target" data-img-id="img_stellar_avatar" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+                    <div class="stellar-name" contenteditable="true" data-text-id="stellar_name">Stellarmoment</div>
+                    <div class="stellar-tag">
+                        <span class="tag-hash">#</span>
+                        <span contenteditable="true" data-text-id="stellar_tag">☁天使☁ @char</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row-grid">
+                <div class="widget-tag">Colorful Widget</div>
+                <div class="widget-tag">Colorful Widget</div>
+            </div>
+
+            <div class="diary-widget">
+                <div class="diary-header">
+                    <span contenteditable="true" data-text-id="diary_icon">&lt;</span>
+                    <span contenteditable="true" data-text-id="diary_title">恋爱 · 日记</span>
+                    <span></span>
+                </div>
+                <div class="diary-user">
+                    <div class="diary-avatar js-upload-target" data-img-id="img_diary_avatar"></div>
+                    <div>
+                        <div contenteditable="true" data-text-id="diary_user" style="font-size: 10.5px; font-weight: bold; color:#333;">北极星@yidianji</div>
+                    </div>
+                </div>
+                <div class="diary-content" contenteditable="true" data-text-id="diary_content">
+                    与你而言 我是一颗星吗@char
+                </div>
+                <div class="diary-footer">
+                    <span contenteditable="true" data-text-id="diary_time">🕒 2026-07-04 10:21</span>
+                    <div>
+                        <span contenteditable="true" data-text-id="diary_action">♡ 喜欢 &nbsp; ☆ 收藏 &nbsp; • • •</span>
+                    </div>
+                </div>
+            </div>
+            <div class="widget-tag">Colorful Widget</div>
+
+            <div class="row-grid">
+                <div class="dual-photo-direct">
+                    <div class="photo-slot-vertical js-upload-target" data-img-id="img_dual_1"></div>
+                    <div class="photo-slot-vertical js-upload-target" data-img-id="img_dual_2"></div>
+                </div>
+
+                <div class="app-grid">
+                    <div class="app-item">
+                        <div class="app-icon">
+                            <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 4h2v5l-1-.75L9 9V4z"/></svg>
+                        </div>
+                        <span class="app-label" contenteditable="true" data-text-id="app_2_1">江晋</span>
+                    </div>
+                    <div class="app-item">
+                        <div class="app-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        </div>
+                        <span class="app-label" contenteditable="true" data-text-id="app_2_2">与你</span>
+                    </div>
+                    <div class="app-item">
+                        <div class="app-icon">
+                            <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                        </div>
+                        <span class="app-label" contenteditable="true" data-text-id="app_2_3">ins</span>
+                    </div>
+                    <div class="app-item">
+                        <div class="app-icon">
+                            <svg viewBox="0 0 24 24"><path d="M6 2v6l4 4-4 4v6h12v-6l-4-4 4-4V2H6zm10 14.5V18H8v-1.5l4-4 4 4zM12 11.5L8 7.5V6h8v1.5l-4 4z"/></svg>
+                        </div>
+                        <span class="app-label" contenteditable="true" data-text-id="app_2_4">叙旧事</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row-grid">
+                <div class="widget-tag">Colorful Widget</div>
+                <div class="widget-tag">Colorful Widget</div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 3. 拟态玻璃 "问小布" 搜索栏（◆ 可更换主页背景） -->
+    <div class="search-container">
+        <div class="search-btn">
+            <span class="bg-change-diamond" id="bg-change-btn" title="点击更换主页壁纸">◆</span>
+            <span contenteditable="true" data-text-id="search_text">问小布</span>
+        </div>
+    </div>
+
+    <!-- 4. 拟态玻璃 Dock 栏 -->
+    <div class="dock-bar">
+        <div class="dock-icon-item">
+            <div class="dock-icon">
+                <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            </div>
+        </div>
+
+        <div class="dock-icon-item">
+            <div class="dock-icon">
+                <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+            </div>
+        </div>
+
+        <div class="dock-icon-item">
+            <div class="dock-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 3c-4.97 0-9 4.03-9 9 0 2.12.74 4.07 1.97 5.61.43.53 1.12.89 1.83.89h1.7c.83 0 1.5-.67 1.5-1.5 0-.38-.15-.73-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5h1.77c3.59 0 6.5-2.91 6.5-6.5C21 5.91 16.97 3 12 3zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9s1.5.67 1.5 1.5S7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+            </div>
+        </div>
+
+        <div class="dock-icon-item">
+            <div class="dock-icon">
+                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-6 10.5l-2 1.8-2-1.8C8.2 10.9 7 9.8 7 8.5 7 7.4 7.9 6.5 9 6.5c.6 0 1.2.3 1.6.8.4-.5 1-.8 1.6-.8 1.1 0 2 .9 2 2 0 1.3-1.2 2.4-3 4z"/></svg>
+            </div>
+        </div>
+
+        <div class="dock-icon-item">
+            <div class="dock-icon">
+                <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 4h2v5l-1-.75L9 9V4zm9 16H6V4h1v16h11v0z"/></svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------------- 1. PWA 机制注入：支持被识别为原生 Web App 安装 ----------------
+    function initPWA() {
+        // 生成 Blob 格式 Manifest 清单
+        const manifestObj = {
+            "name": "意点机",
+            "short_name": "意点机",
+            "start_url": "./",
+            "scope": "./",
+            "display": "standalone",
+            "orientation": "portrait",
+            "background_color": "#dcdfe3",
+            "theme_color": "#dcdfe3",
+            "icons": [
+                {
+                    "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%232c2c2c'/><text y='.75em' font-size='60' x='20' fill='%23ffffff'>意</text></svg>",
+                    "sizes": "192x192 512x512",
+                    "type": "image/svg+xml",
+                    "purpose": "any maskable"
+                }
+            ]
+        };
+        const manifestBlob = new Blob([JSON.stringify(manifestObj)], { type: 'application/json' });
+        const manifestUrl = URL.createObjectURL(manifestBlob);
+        document.getElementById('manifest-link').setAttribute('href', manifestUrl);
+
+        // 注册 Inline Service Worker (拦截网络，让 Chrome/Edge 判定为可安装 PWA)
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', (e) => self.skipWaiting());
+                self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+                self.addEventListener('fetch', (e) => {
+                    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+                });
+            `;
+            const swBlob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(swBlob);
+            navigator.serviceWorker.register(swUrl, { scope: './' }).catch(() => {});
+        }
+    }
+    initPWA();
+
+    // ---------------- 2. IndexedDB 永久存储引擎 ----------------
+    const DB_NAME = 'YidianjiAppDB';
+    const DB_VERSION = 1;
+    let db = null;
+
+    function initDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onupgradeneeded = (e) => {
+                db = e.target.result;
+                if (!db.objectStoreNames.contains('appStore')) {
+                    db.createObjectStore('appStore');
+                }
+            };
+            request.onsuccess = (e) => {
+                db = e.target.result;
+                resolve(db);
+            };
+            request.onerror = (e) => reject(e);
+        });
+    }
+
+    function saveStorage(key, value) {
+        if (!db) return;
+        const tx = db.transaction('appStore', 'readwrite');
+        const store = tx.objectStore('appStore');
+        store.put(value, key);
+    }
+
+    function getStorage(key) {
+        return new Promise((resolve) => {
+            if (!db) return resolve(null);
+            const tx = db.transaction('appStore', 'readonly');
+            const store = tx.objectStore('appStore');
+            const req = store.get(key);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => resolve(null);
+        });
+    }
+
+    // ---------------- 3. 恢复与监听持久化数据 ----------------
+    async function restoreAllData() {
+        await initDB();
+
+        // 恢复文字
+        const editableElems = document.querySelectorAll('[data-text-id]');
+        for (const elem of editableElems) {
+            const textId = elem.getAttribute('data-text-id');
+            const savedText = await getStorage('text_' + textId);
+            if (savedText !== null && savedText !== undefined) {
+                elem.innerText = savedText;
+            }
+            elem.addEventListener('input', () => {
+                saveStorage('text_' + textId, elem.innerText);
+            });
+        }
+
+        // 恢复头像/上传小图
+        const imgElems = document.querySelectorAll('[data-img-id]');
+        for (const elem of imgElems) {
+            const imgId = elem.getAttribute('data-img-id');
+            const savedImg = await getStorage('img_' + imgId);
+            if (savedImg) {
+                elem.style.backgroundImage = `url(${savedImg})`;
+                elem.style.backgroundSize = 'cover';
+                elem.style.backgroundPosition = 'center';
+                if (elem.innerText === 'Him' || elem.innerText === 'Her') {
+                    elem.innerText = '';
+                }
+            }
+        }
+
+        // 恢复主页背景壁纸
+        const savedMainBg = await getStorage('main_bg_image');
+        if (savedMainBg) {
+            applyMainBg(savedMainBg);
+        }
+
+        // 恢复天使小组件背景 (60% 不透明度)
+        const savedAngelBg = await getStorage('angel_bg_image');
+        if (savedAngelBg) {
+            applyAngelBg(savedAngelBg);
+        }
+    }
+
+    function applyMainBg(base64) {
+        document.querySelectorAll('.page').forEach(page => {
+            page.style.backgroundImage = `url(${base64})`;
+        });
+    }
+
+    function applyAngelBg(base64) {
+        const bgLayer = document.getElementById('angel-bg-layer');
+        if (bgLayer) {
+            bgLayer.style.backgroundImage = `url(${base64})`;
+        }
+    }
+
+    // ---------------- 4. 交互控制 ----------------
+    
+    // 实时时间
+    function updateRealTime() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('status-time').innerText = `${hours}:${minutes}`;
+    }
+    setInterval(updateRealTime, 1000);
+    updateRealTime();
+
+    // 实时电量
+    function initBattery() {
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(battery => {
+                function updateBatteryInfo() {
+                    const level = Math.round(battery.level * 100);
+                    document.getElementById('battery-text').innerText = level + '%';
+                    document.getElementById('battery-fill').style.width = level + '%';
+                }
+                updateBatteryInfo();
+                battery.addEventListener('levelchange', updateBatteryInfo);
+            }).catch(() => {
+                document.getElementById('battery-text').innerText = '100%';
+            });
+        } else {
+            document.getElementById('battery-text').innerText = '100%';
+        }
+    }
+    initBattery();
+
+    // 通用图片上传逻辑
+    const fileInput = document.getElementById('global-file-input');
+    let currentUploadTarget = null;
+
+    document.querySelectorAll('.js-upload-target').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.hasAttribute('contenteditable')) return;
+            currentUploadTarget = item;
+            fileInput.click();
+        });
+    });
+
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0] && currentUploadTarget) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const base64 = evt.target.result;
+                currentUploadTarget.style.backgroundImage = `url(${base64})`;
+                currentUploadTarget.style.backgroundSize = 'cover';
+                currentUploadTarget.style.backgroundPosition = 'center';
+                if (currentUploadTarget.innerText === 'er' || currentUploadTarget.innerText === 'Her') {
+                    currentUploadTarget.innerText = '';
+                }
+                const imgId = currentUploadTarget.getAttribute('data-img-id');
+                if (imgId) {
+                    saveStorage('img_' + imgId, base64);
+                }
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+        fileInput.value = '';
+    });
+
+    // 点击 ◆ 更换主页全屏壁纸
+    const mainBgBtn = document.getElementById('bg-change-btn');
+    const mainBgFileInput = document.getElementById('main-bg-file-input');
+
+    mainBgBtn.addEventListener('click', () => {
+        mainBgFileInput.click();
+    });
+
+    mainBgFileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const base64 = evt.target.result;
+                applyMainBg(base64);
+                saveStorage('main_bg_image', base64);
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+        mainBgFileInput.value = '';
+    });
+
+    // 点击天使小组件卡片空白处更换背景（自动降低 60% 不透明度）
+    const angelWidget = document.getElementById('angel-widget');
+    const angelBgFileInput = document.getElementById('angel-bg-file-input');
+
+    angelWidget.addEventListener('click', (e) => {
+        if (e.target.hasAttribute('contenteditable') || e.target.classList.contains('js-upload-target')) {
+            return;
+        }
+        angelBgFileInput.click();
+    });
+
+    angelBgFileInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const base64 = evt.target.result;
+                applyAngelBg(base64);
+                saveStorage('angel_bg_image', base64);
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+        angelBgFileInput.value = '';
+    });
+
+    // 初始化所有数据
+    restoreAllData();
+</script>
+
+</body>
+</html>
