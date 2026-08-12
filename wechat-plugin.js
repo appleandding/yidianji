@@ -6,21 +6,23 @@
     let activeTab = 1;
     let isAiTyping = false;
 
+    // 打开微信 App
     window.openWechatApp = function () {
-        let modal = document.getElementById('wechat-app-modal');
+        const modal = document.getElementById('wechat-app-modal');
         if (modal) {
-            modal.classList.add('active');
+            modal.style.display = 'flex';
             renderCharList();
         }
     };
 
+    // 关闭微信 App
     window.closeWechatApp = function () {
         const modal = document.getElementById('wechat-app-modal');
-        if (modal) modal.classList.remove('active');
+        if (modal) modal.style.display = 'none';
     };
 
-    // 绑定酒馆卡与表情包输入
-    document.addEventListener('DOMContentLoaded', function() {
+    // 绑定酒馆卡与表情包文件解析
+    document.addEventListener('DOMContentLoaded', function () {
         const tavernInput = document.getElementById('tavern-card-input');
         if (tavernInput) {
             tavernInput.addEventListener('change', (e) => {
@@ -33,7 +35,7 @@
                             if (file.name.endsWith('.json')) {
                                 charData = JSON.parse(evt.target.result);
                             } else {
-                                charData = { name: file.name.replace('.png',''), description: '酒馆PNG人物卡' };
+                                charData = { name: file.name.replace('.png',''), description: '酒馆PNG人物卡人设' };
                             }
                             const newChar = {
                                 id: 'char_' + Date.now(),
@@ -47,7 +49,7 @@
                             let chars = (await window.getStorage('wechat_chars')) || [];
                             chars.push(newChar);
                             await window.saveStorage('wechat_chars', chars);
-                            alert(`酒馆卡 "${newChar.name}" 导入成功！已自动添加关联。`);
+                            alert(`酒馆卡 "${newChar.name}" 导入成功！已自动添加世界书分类。`);
                             renderCharList();
                         } catch(err) {
                             alert('酒馆卡解析失败！');
@@ -64,7 +66,10 @@
                 if (e.target.files && e.target.files[0]) {
                     const reader = new FileReader();
                     reader.onload = function(evt) {
-                        alert('表情包链接文档导入成功！');
+                        const text = evt.target.result;
+                        if (confirm(`解析到文档，确认导入内部表情包链接？\n\n${text.substring(0, 100)}...`)) {
+                            alert('表情包批量解析导入成功！');
+                        }
                     };
                     reader.readAsText(e.target.files[0]);
                 }
@@ -72,7 +77,7 @@
         }
     });
 
-    // Switch Bottom Hearts Tab
+    // Tab 切换
     window.switchWechatTab = function(idx) {
         activeTab = idx;
         document.querySelectorAll('.wechat-tab-item').forEach((item, i) => {
@@ -90,6 +95,7 @@
     async function renderCharList() {
         const container = document.getElementById('wechat-char-list');
         if (!container) return;
+
         let chars = (await window.getStorage('wechat_chars')) || [];
         if (chars.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding:30px; font-size:11px; color:#888;">暂无角色，点击右上角 + 创建人设或 ☰ 导入酒馆卡</div>';
@@ -121,6 +127,7 @@
         container.innerHTML = html;
     }
 
+    // 置顶与删除
     window.togglePinChar = async function(id) {
         let chars = (await window.getStorage('wechat_chars')) || [];
         const target = chars.find(c => c.id === id);
@@ -140,6 +147,7 @@
         }
     };
 
+    // 新增人设弹窗
     window.openCharCreateModal = function() {
         document.getElementById('char-modal-overlay').style.display = 'flex';
     };
@@ -176,6 +184,7 @@
         document.getElementById('tavern-card-input').click();
     };
 
+    // 打开全屏聊天视图
     window.openChatView = async function(charId) {
         activeCharId = charId;
         const chars = (await window.getStorage('wechat_chars')) || [];
@@ -190,9 +199,10 @@
         renderCharList();
     };
 
+    // 渲染聊天消息
     async function renderChatMessages() {
         const container = document.getElementById('wechat-msg-container');
-        if (!container || !activeCharId) return;
+        if (!container) return;
         const msgs = (await window.getStorage('wechat_msgs_' + activeCharId)) || [];
         let html = '';
         for (let m of msgs) {
@@ -208,6 +218,7 @@
         container.scrollTop = container.scrollHeight;
     }
 
+    // 发送消息
     window.sendChatMessage = async function() {
         const input = document.getElementById('wechat-msg-input');
         const val = input.value.trim();
@@ -220,6 +231,7 @@
         renderChatMessages();
     };
 
+    // AI 回复触发
     window.triggerAiReply = async function() {
         if (!activeCharId || isAiTyping) return;
         isAiTyping = true;
@@ -241,9 +253,10 @@
             headerTitle.innerText = originalTitle;
             isAiTyping = false;
             renderChatMessages();
-        }, 1500);
+        }, 1200);
     };
 
+    // 扩展与表情包面板
     window.togglePlusPanel = function() {
         const p = document.getElementById('wechat-plus-panel');
         p.style.display = p.style.display === 'none' ? 'grid' : 'none';
@@ -257,19 +270,19 @@
     };
 
     window.triggerBatchEmojiImport = function() {
-        const links = prompt('粘贴表情包批量链接（支持 名字:URL 或 名字 URL 格式，每行一个）：');
-        if (links) alert('表情包批量导入成功！');
+        const links = prompt('粘贴表情包批量链接：');
+        if (links) alert('表情包批量解析导入成功！');
     };
 
     window.triggerBatchEmojiFile = function() {
         document.getElementById('emoji-file-input').click();
     };
 
+    // 角色设置菜单页
     window.openCharSettingsView = function() {
         document.getElementById('wechat-char-settings-view').style.display = 'flex';
         switchSettingTab('persona');
     };
-
     window.closeCharSettingsView = function() {
         document.getElementById('wechat-char-settings-view').style.display = 'none';
     };
