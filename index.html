@@ -306,7 +306,7 @@
 
         .widget-tag { font-size: 9px; color: #777; text-align: center; margin-top: -6px; margin-bottom: 2px; }
 
-        /* ==================== 拟态玻璃 API设置 App 弹出页面 (含左上角返回按钮 <) ==================== */
+        /* ==================== 拟态玻璃 API设置 App 弹出页面 ==================== */
         .app-modal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 9999; display: none; flex-direction: column;
@@ -330,7 +330,6 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.4);
         }
 
-        /* 左上角独立返回按钮 < */
         .modal-back-btn {
             cursor: pointer; width: 28px; height: 28px;
             display: flex; align-items: center; justify-content: center;
@@ -339,8 +338,8 @@
         .modal-back-btn svg { width: 18px; height: 18px; fill: #222; }
 
         .modal-body {
-            flex: 1; padding: 16px; overflow-y: auto;
-            display: flex; flex-direction: column; gap: 12px;
+            flex: 1; padding: 14px; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 10px;
         }
 
         .api-menu-list { display: flex; flex-direction: column; gap: 10px; }
@@ -359,26 +358,83 @@
         .menu-icon { width: 18px; height: 18px; fill: #333; }
         .chevron-icon { width: 16px; height: 16px; fill: #888; }
 
-        .api-sub-panel { display: none; flex-direction: column; gap: 12px; }
+        .api-sub-panel { display: none; flex-direction: column; gap: 10px; }
 
-        .glass-input-group { display: flex; flex-direction: column; gap: 6px; }
-        .glass-input-label { font-size: 11px; color: #555; font-weight: bold; }
+        /* API 预设管理样式 */
+        .preset-card {
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 16px; padding: 12px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .preset-header { display: flex; justify-content: space-between; align-items: center; }
+        .preset-title { font-size: 11px; font-weight: bold; color: #333; }
+        .preset-row-inputs { display: flex; gap: 8px; }
+
+        /* 副 API 侧滑开关卡片样式 */
+        .sub-api-card {
+            background: rgba(255, 255, 255, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 16px; padding: 12px;
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .glass-toggle-row {
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer;
+        }
+        .sub-api-title { font-size: 11.5px; font-weight: bold; color: #333; }
+
+        /* 黑白极简 iOS 侧滑开关 */
+        .toggle-switch {
+            position: relative; display: inline-block;
+            width: 38px; height: 22px; flex-shrink: 0;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0,0,0,0.15);
+            transition: .3s; border-radius: 22px;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+        .slider:before {
+            position: absolute; content: "";
+            height: 16px; width: 16px; left: 2px; bottom: 2px;
+            background-color: #444; transition: .3s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #2c2c2c; }
+        input:checked + .slider:before {
+            transform: translateX(16px); background-color: #ffffff;
+        }
+
+        /* 折叠/展开过渡效果 */
+        .sub-api-body {
+            max-height: 0; overflow: hidden; opacity: 0;
+            transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .sub-api-body.expanded {
+            max-height: 280px; opacity: 1; margin-top: 8px;
+        }
+
+        .glass-input-group { display: flex; flex-direction: column; gap: 4px; }
+        .glass-input-label { font-size: 10.5px; color: #555; font-weight: bold; }
         .glass-input {
-            width: 100%; padding: 10px 12px; border-radius: 12px;
+            width: 100%; padding: 8px 10px; border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.8);
             background: rgba(255, 255, 255, 0.6);
-            font-size: 12px; color: #222; outline: none;
+            font-size: 11px; color: #222; outline: none;
         }
         .glass-select {
-            width: 100%; padding: 10px 12px; border-radius: 12px;
+            width: 100%; padding: 8px 10px; border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.8);
             background: rgba(255, 255, 255, 0.7);
-            font-size: 12px; color: #222; outline: none;
+            font-size: 11px; color: #222; outline: none;
         }
 
         .glass-btn {
             background: #2c2c2c; color: #fff; border: none;
-            border-radius: 12px; padding: 10px 14px; font-size: 12px;
+            border-radius: 10px; padding: 8px 12px; font-size: 11px;
             font-weight: bold; cursor: pointer; text-align: center;
             transition: opacity 0.2s; display: flex; align-items: center;
             justify-content: center; gap: 6px;
@@ -388,6 +444,7 @@
             background: rgba(255, 255, 255, 0.75); color: #333;
             border: 1px solid rgba(255, 255, 255, 0.9);
         }
+        .glass-btn-sm { padding: 5px 10px; font-size: 10px; border-radius: 8px; }
 
         #global-file-input, #main-bg-file-input, #angel-bg-file-input, #import-json-input { display: none; }
     </style>
@@ -646,18 +703,17 @@
         </div>
     </div>
 
-    <!-- ==================== 拟态玻璃 API设置 App 独立页面 (左上角返回按钮 <，无 ✕ 符号，纯矢量 Icon) ==================== -->
+    <!-- ==================== 拟态玻璃 API设置 App 面板 ==================== -->
     <div class="app-modal-overlay" id="api-app-modal">
         <div class="modal-header">
-            <!-- 左上角返回按钮 < -->
             <div class="modal-back-btn" id="api-nav-back" onclick="closeApiAppModal()">
                 <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
             </div>
             <span id="api-modal-title">API 设置</span>
-            <div style="width: 28px;"></div> <!-- 右侧占位保持对称 -->
+            <div style="width: 28px;"></div>
         </div>
         <div class="modal-body">
-            <!-- 初始 4 行菜单列表 (无表情包) -->
+            <!-- 初始 4 行菜单列表 -->
             <div class="api-menu-list" id="api-menu-list">
                 <div class="api-menu-row" onclick="openApiSubPanel('panel-api', 'API 配置')">
                     <div class="menu-item-left">
@@ -692,24 +748,111 @@
                 </div>
             </div>
 
-            <!-- 子视图 1: API 配置 -->
+            <!-- 子视图 1: API 配置 (含预设管理与 4 个副 API 侧滑折叠) -->
             <div class="api-sub-panel" id="panel-api">
-                <div class="glass-input-group">
-                    <label class="glass-input-label">API Base URL</label>
-                    <input class="glass-input" id="api-url-input" placeholder="https://api.openai.com/v1">
-                </div>
-                <div class="glass-input-group">
-                    <label class="glass-input-label">API Key</label>
-                    <input class="glass-input" type="password" id="api-key-input" placeholder="sk-...">
-                </div>
-                <button class="glass-btn glass-btn-secondary" id="fetch-models-btn">拉取可用的 API 模型</button>
-                <div class="glass-input-group">
-                    <label class="glass-input-label">当前模型选择</label>
-                    <select class="glass-select" id="api-model-select">
-                        <option value="">点击上方按钮拉取，或手动输入</option>
+                <!-- API 预设管理卡片 -->
+                <div class="preset-card">
+                    <div class="preset-header">
+                        <span class="preset-title">API 预设管理</span>
+                        <button class="glass-btn glass-btn-sm glass-btn-secondary" id="random-preset-btn">随机切换预设</button>
+                    </div>
+                    <select class="glass-select" id="api-preset-select">
+                        <option value="">-- 选择或切换保存的预设 --</option>
                     </select>
+                    <div class="preset-row-inputs">
+                        <input class="glass-input" id="api-preset-name-input" placeholder="输入当前预设名称">
+                        <button class="glass-btn glass-btn-sm" id="save-preset-btn">保存预设</button>
+                    </div>
                 </div>
-                <button class="glass-btn" id="save-api-btn">保存 API 配置</button>
+
+                <!-- 主 API 配置 -->
+                <div class="sub-api-card">
+                    <div class="sub-api-title">主 API 配置</div>
+                    <div class="glass-input-group">
+                        <label class="glass-input-label">API Base URL</label>
+                        <input class="glass-input" id="api-url-input" placeholder="https://api.openai.com/v1">
+                    </div>
+                    <div class="glass-input-group">
+                        <label class="glass-input-label">API Key</label>
+                        <input class="glass-input" type="password" id="api-key-input" placeholder="sk-...">
+                    </div>
+                    <button class="glass-btn glass-btn-secondary" id="fetch-models-main">拉取主 API 模型</button>
+                    <div class="glass-input-group">
+                        <label class="glass-input-label">当前模型选择</label>
+                        <select class="glass-select" id="api-model-select">
+                            <option value="">点击上方按钮拉取，或手动输入</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 副 API 1: 记忆总结 -->
+                <div class="sub-api-card">
+                    <div class="glass-toggle-row">
+                        <span class="sub-api-title">副API：记忆总结</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-memory">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="sub-api-body" id="body-memory">
+                        <input class="glass-input" id="memory-url-input" placeholder="记忆总结 API Base URL">
+                        <input class="glass-input" type="password" id="memory-key-input" placeholder="API Key">
+                        <button class="glass-btn glass-btn-secondary" id="fetch-models-memory">拉取记忆模型</button>
+                        <select class="glass-select" id="memory-model-select"><option value="">选择模型</option></select>
+                    </div>
+                </div>
+
+                <!-- 副 API 2: 识图 -->
+                <div class="sub-api-card">
+                    <div class="glass-toggle-row">
+                        <span class="sub-api-title">副API：识图</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-vision">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="sub-api-body" id="body-vision">
+                        <input class="glass-input" id="vision-url-input" placeholder="识图 API Base URL">
+                        <input class="glass-input" type="password" id="vision-key-input" placeholder="API Key">
+                        <button class="glass-btn glass-btn-secondary" id="fetch-models-vision">拉取识图模型</button>
+                        <select class="glass-select" id="vision-model-select"><option value="">选择模型</option></select>
+                    </div>
+                </div>
+
+                <!-- 副 API 3: 生图 -->
+                <div class="sub-api-card">
+                    <div class="glass-toggle-row">
+                        <span class="sub-api-title">生图API：生图</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-image">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="sub-api-body" id="body-image">
+                        <input class="glass-input" id="image-url-input" placeholder="生图 API Base URL">
+                        <input class="glass-input" type="password" id="image-key-input" placeholder="API Key">
+                        <input class="glass-input" id="image-model-input" placeholder="生图模型 ID (如 dall-e-3)">
+                    </div>
+                </div>
+
+                <!-- 副 API 4: 通用 -->
+                <div class="sub-api-card">
+                    <div class="glass-toggle-row">
+                        <span class="sub-api-title">通用副API：api</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-general">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="sub-api-body" id="body-general">
+                        <input class="glass-input" id="general-url-input" placeholder="通用副 API Base URL">
+                        <input class="glass-input" type="password" id="general-key-input" placeholder="API Key">
+                        <button class="glass-btn glass-btn-secondary" id="fetch-models-general">拉取通用模型</button>
+                        <select class="glass-select" id="general-model-select"><option value="">选择模型</option></select>
+                    </div>
+                </div>
+
+                <button class="glass-btn" id="save-all-api-btn">保存当前完整配置</button>
             </div>
 
             <!-- 子视图 2: MiniMax 配置 -->
@@ -893,25 +1036,6 @@
 
         const savedAngelBg = await getStorage('angel_bg_image');
         if (savedAngelBg) applyAngelBg(savedAngelBg);
-
-        const apiUrl = await getStorage('api_url');
-        if (apiUrl) document.getElementById('api-url-input').value = apiUrl;
-        const apiKey = await getStorage('api_key');
-        if (apiKey) document.getElementById('api-key-input').value = apiKey;
-        const apiModel = await getStorage('api_model');
-        if (apiModel) {
-            const select = document.getElementById('api-model-select');
-            select.innerHTML = `<option value="${apiModel}">${apiModel}</option>`;
-        }
-
-        const mmKey = await getStorage('minimax_key');
-        if (mmKey) document.getElementById('minimax-key-input').value = mmKey;
-        const mmGroup = await getStorage('minimax_group');
-        if (mmGroup) document.getElementById('minimax-group-input').value = mmGroup;
-        const mmVoice = await getStorage('minimax_voice');
-        if (mmVoice) document.getElementById('minimax-voice-select').value = mmVoice;
-        const mmCustomVoice = await getStorage('minimax_custom_voice');
-        if (mmCustomVoice) document.getElementById('minimax-custom-voice').value = mmCustomVoice;
     }
 
     function applyMainBg(base64) {
@@ -1032,7 +1156,6 @@
     restoreAllData();
 </script>
 
-<!-- 引入独立的 API 插件逻辑脚本 -->
 <script src="api-plugin.js"></script>
 
 </body>
