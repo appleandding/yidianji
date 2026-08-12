@@ -106,7 +106,7 @@
         .bg-change-diamond { cursor: pointer; padding: 2px 4px; font-size: 12px; }
         .widget-tag { font-size: 9px; color: #777; text-align: center; margin-top: -6px; margin-bottom: 2px; }
 
-        /* App 弹出页面隔离遮罩层 (去除错误的 !important) */
+        /* App 弹出隔离层 */
         .app-modal-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: 9999; display: none; flex-direction: column;
@@ -152,7 +152,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.02);
             cursor: pointer; transition: all 0.2s;
         }
-        .api-menu-row:active { transform: scale(0.98); background: rgba(255,255,255,0.85); }
 
         .menu-item-left { display: flex; align-items: center; gap: 10px; }
         .menu-icon { width: 18px; height: 18px; fill: #333; }
@@ -176,95 +175,47 @@
             border-radius: 16px; padding: 12px;
             display: flex; flex-direction: column; gap: 6px;
         }
-        .glass-toggle-row {
-            display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer;
-        }
+        .glass-toggle-row { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .sub-api-title { font-size: 11.5px; font-weight: bold; color: #333; }
 
-        .toggle-switch {
-            position: relative; display: inline-block;
-            width: 38px; height: 22px; flex-shrink: 0;
-        }
+        .toggle-switch { position: relative; display: inline-block; width: 38px; height: 22px; flex-shrink: 0; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute; cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(0,0,0,0.15);
-            transition: .3s; border-radius: 22px;
-            border: 1px solid rgba(255,255,255,0.6);
-        }
-        .slider:before {
-            position: absolute; content: "";
-            height: 16px; width: 16px; left: 2px; bottom: 2px;
-            background-color: #444; transition: .3s; border-radius: 50%;
-        }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.15); transition: .3s; border-radius: 22px; border: 1px solid rgba(255,255,255,0.6); }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 2px; bottom: 2px; background-color: #444; transition: .3s; border-radius: 50%; }
         input:checked + .slider { background-color: #2c2c2c; }
-        input:checked + .slider:before {
-            transform: translateX(16px); background-color: #ffffff;
-        }
+        input:checked + .slider:before { transform: translateX(16px); background-color: #ffffff; }
 
-        .sub-api-body {
-            display: none; flex-direction: column; gap: 8px;
-            opacity: 0; max-height: 0; overflow: hidden;
-            transition: max-height 0.3s ease, opacity 0.3s ease;
-        }
-        .sub-api-body.expanded {
-            display: flex !important; opacity: 1;
-            max-height: 450px; margin-top: 8px;
-        }
+        .sub-api-body { display: none; flex-direction: column; gap: 8px; opacity: 0; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; }
+        .sub-api-body.expanded { display: flex !important; opacity: 1; max-height: 450px; margin-top: 8px; }
 
         .glass-input-group { display: flex; flex-direction: column; gap: 4px; }
         .glass-input-label { font-size: 10.5px; color: #555; font-weight: bold; }
-        .glass-input {
-            width: 100%; padding: 8px 10px; border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            background: rgba(255, 255, 255, 0.6);
-            font-size: 11px; color: #222; outline: none;
-        }
-        .glass-select {
-            width: 100%; padding: 8px 10px; border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.8);
-            background: rgba(255, 255, 255, 0.7);
-            font-size: 11px; color: #222; outline: none;
-        }
+        .glass-input { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.8); background: rgba(255, 255, 255, 0.6); font-size: 11px; color: #222; outline: none; }
+        .glass-select { width: 100%; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.8); background: rgba(255, 255, 255, 0.7); font-size: 11px; color: #222; outline: none; }
 
-        .glass-range {
-            -webkit-appearance: none; width: 100%; height: 6px;
-            background: rgba(0, 0, 0, 0.15); border-radius: 3px; outline: none; margin: 4px 0;
-        }
-        .glass-range::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 16px; height: 16px;
-            border-radius: 50%; background: #2c2c2c; cursor: pointer;
-            border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .temp-val-display {
-            font-size: 10px; font-weight: bold; color: #2c2c2c;
-            background: rgba(255,255,255,0.7); padding: 1px 6px; border-radius: 6px;
-        }
+        .glass-range { -webkit-appearance: none; width: 100%; height: 6px; background: rgba(0, 0, 0, 0.15); border-radius: 3px; outline: none; margin: 4px 0; }
+        .glass-range::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: #2c2c2c; cursor: pointer; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .temp-val-display { font-size: 10px; font-weight: bold; color: #2c2c2c; background: rgba(255,255,255,0.7); padding: 1px 6px; border-radius: 6px; }
 
-        .glass-btn {
-            background: #2c2c2c; color: #fff; border: none;
-            border-radius: 10px; padding: 8px 12px; font-size: 11px;
-            font-weight: bold; cursor: pointer; text-align: center;
-            transition: opacity 0.2s; display: flex; align-items: center;
-            justify-content: center; gap: 6px;
-        }
+        .glass-btn { background: #2c2c2c; color: #fff; border: none; border-radius: 10px; padding: 8px 12px; font-size: 11px; font-weight: bold; cursor: pointer; text-align: center; transition: opacity 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .glass-btn:active { opacity: 0.8; }
-        .glass-btn-secondary {
-            background: rgba(255, 255, 255, 0.75); color: #333;
-            border: 1px solid rgba(255, 255, 255, 0.9);
-        }
+        .glass-btn-secondary { background: rgba(255, 255, 255, 0.75); color: #333; border: 1px solid rgba(255, 255, 255, 0.9); }
         .glass-btn-sm { padding: 5px 10px; font-size: 10px; border-radius: 8px; }
 
-        /* 微信页面与气泡 */
+        /* 微信页面与划出置顶按键 */
         .wechat-header { height: calc(44px + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px); padding-left: 14px; padding-right: 18px; display: flex; justify-content: space-between; align-items: center; background: #e8e5de; border-bottom: 1px solid rgba(0,0,0,0.05); }
         .wechat-list-body { flex: 1; overflow-y: auto; }
-        .wechat-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid #eae8e1; background: #f7f5f0; position: relative; transition: background 0.2s; cursor: pointer; }
+        
+        .wechat-item-wrapper { position: relative; overflow: hidden; border-bottom: 1px solid #eae8e1; }
+        .wechat-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f7f5f0; position: relative; transition: background 0.2s; cursor: pointer; }
         .wechat-item.pinned { background: #edeae1; }
         .wechat-avatar-box { width: 42px; height: 44px; border-radius: 6px; background: #ddd; background-size: cover; background-position: center; flex-shrink: 0; }
-        .wechat-slide-actions { position: absolute; right: 0; top: 0; bottom: 0; display: none; }
-        .wechat-slide-actions span { display: flex; align-items: center; padding: 0 12px; background: #a8a8a8; color: #fff; font-size: 11px; height: 100%; cursor: pointer; }
+        
+        .wechat-slide-actions { position: absolute; right: 0; top: 0; bottom: 0; display: none; z-index: 5; }
+        .wechat-slide-actions span { display: flex; align-items: center; padding: 0 12px; color: #fff; font-size: 11px; height: 100%; cursor: pointer; }
+        .action-pin { background: #8e8a82; }
+        .action-mute { background: #b0ab9f; }
+        .action-del { background: #d9534f; }
 
         .wechat-dock-bar { height: 50px; background: #e8e5de; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #dedbd3; }
         .wechat-tab-item { cursor: pointer; font-size: 16px; color: #777; }
@@ -287,29 +238,24 @@
         .setting-tab { flex: 1; text-align: center; padding: 6px 0; font-size: 10px; color: #666; cursor: pointer; border-bottom: 2px solid transparent; }
         .setting-tab.active { color: #222; font-weight: bold; border-bottom-color: #444; }
 
-        .yidian-msg-bubble-row { position: relative; display: flex; align-items: flex-end; margin-bottom: 4px; transition: all 0.2s ease; }
-        .yidian-msg-bubble-row.mine:has(+ .yidian-msg-bubble-row.mine),
-        .yidian-msg-bubble-row.others:has(+ .yidian-msg-bubble-row.others) { margin-bottom: 3px; }
-        .yidian-msg-bubble-row.mine:has(+ .yidian-msg-bubble-row.mine) .yidian-chat-avatar,
-        .yidian-msg-bubble-row.others:has(+ .yidian-msg-bubble-row.others) .yidian-chat-avatar { visibility: hidden; height: 0; margin: 0; }
-        
-        .yidian-msg-bubble-row .yidian-chat-avatar { width: 30px !important; height: 30px !important; border-radius: 50%; display: flex; align-items: center; justify-content: center; object-fit: cover; flex-shrink: 0; font-size: 12px; box-shadow: none !important; transform: translateY(12px); }
-
-        .yidian-bubble { position: relative; z-index: 2; overflow: visible !important; max-width: 75%; padding: 6px 14px; font-size: 10px; line-height: 1.2; word-break: break-all; }
+        /* 修复微信消息气泡：调整间距消除重叠，去掉对方气泡白边 */
+        .yidian-msg-bubble-row { position: relative; display: flex; align-items: flex-end; margin-bottom: 8px; gap: 8px; transition: all 0.2s ease; }
         .yidian-msg-bubble-row.mine { justify-content: flex-end; }
+        
+        /* 移除 transform: translateY(12px) 防止与气泡尾巴重叠 */
+        .yidian-msg-bubble-row .yidian-chat-avatar {
+            width: 32px !important; height: 32px !important; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            object-fit: cover; flex-shrink: 0; font-size: 12px; box-shadow: none !important;
+        }
+
+        .yidian-bubble { position: relative; z-index: 2; overflow: visible !important; max-width: 72%; padding: 7px 12px; font-size: 11px; line-height: 1.3; word-break: break-all; }
         .yidian-msg-bubble-row.mine .yidian-bubble { background: #7A7A7A; color: #ffffff; border-radius: 12px; }
         .yidian-msg-bubble-row.others .yidian-bubble { background: #E2E2E2; color: #000000; border-radius: 12px; border: none !important; }
 
-        .yidian-msg-bubble-row.mine:has(+ .yidian-msg-bubble-row.mine) .yidian-bubble { margin-right: 10px; }
-        .yidian-msg-bubble-row.others:has(+ .yidian-msg-bubble-row.others) .yidian-bubble { margin-left: 10px; }
-        .yidian-msg-bubble-row.mine:not(:has(+ .yidian-msg-bubble-row.mine)) .yidian-bubble,
-        .yidian-msg-bubble-row.others:not(:has(+ .yidian-msg-bubble-row.others)) .yidian-bubble { transform: translateY(-1px); }
-
-        .yidian-bubble::after { content: ""; display: none; position: absolute; z-index: -1; width: 16px; height: 15px; background-size: contain; background-repeat: no-repeat; transform-origin: center center; }
-        .yidian-msg-bubble-row.mine:not(:has(+ .yidian-msg-bubble-row.mine)) .yidian-bubble:not(.voice-bubble)::after { display: block; bottom: -8px; right: -5.5px; transform: rotate(-8deg); background-image: url('https://image.58sb.cn/file/img/ZcTphMWM.jpg'); }
-        .yidian-msg-bubble-row.mine:not(:has(+ .yidian-msg-bubble-row.mine)) .yidian-bubble.voice-bubble::after { display: block; bottom: -8px; right: -5.5px; transform: rotate(-15deg); background-image: url('https://image.58sb.cn/file/img/ZcTphMWM.jpg'); }
-        .yidian-msg-bubble-row.others:not(:has(+ .yidian-msg-bubble-row.others)) .yidian-bubble:not(.voice-bubble)::after { display: block; bottom: -8px; left: -5.5px; transform: rotate(18deg); background-image: url('https://image.58sb.cn/file/img/VARg0nmu.jpg'); }
-        .yidian-msg-bubble-row.others:not(:has(+ .yidian-msg-bubble-row.others)) .yidian-bubble.voice-bubble::after { display: block; bottom: -8px; left: -5.5px; transform: rotate(15deg); background-image: url('https://image.58sb.cn/file/img/VARg0nmu.jpg'); }
+        .yidian-bubble::after { content: ""; display: none; position: absolute; z-index: -1; width: 14px; height: 14px; background-size: contain; background-repeat: no-repeat; }
+        .yidian-msg-bubble-row.mine:not(:has(+ .yidian-msg-bubble-row.mine)) .yidian-bubble:not(.voice-bubble)::after { display: block; bottom: -6px; right: -5px; transform: rotate(-8deg); background-image: url('https://image.58sb.cn/file/img/ZcTphMWM.jpg'); }
+        .yidian-msg-bubble-row.others:not(:has(+ .yidian-msg-bubble-row.others)) .yidian-bubble:not(.voice-bubble)::after { display: block; bottom: -6px; left: -5px; transform: rotate(18deg); background-image: url('https://image.58sb.cn/file/img/VARg0nmu.jpg'); }
 
         #global-file-input, #main-bg-file-input, #angel-bg-file-input, #import-json-input, #tavern-card-input, #emoji-file-input { display: none; }
     </style>
@@ -529,7 +475,7 @@
 
     </div>
 
-    <!-- 3. 搜索栏 -->
+    <!-- 搜索栏 -->
     <div class="search-container">
         <div class="search-btn">
             <span class="bg-change-diamond" id="bg-change-btn" title="点击更换主页壁纸">◆</span>
@@ -537,7 +483,7 @@
         </div>
     </div>
 
-    <!-- 4. Dock 栏 -->
+    <!-- Dock 栏 -->
     <div class="dock-bar">
         <div class="dock-icon-item" onclick="openApiAppModal()">
             <div class="dock-icon">
@@ -812,7 +758,7 @@
         </div>
     </div>
 
-    <!-- 微信 App 预置独立面板 -->
+    <!-- 微信 App 预置面板 -->
     <div class="app-modal-overlay" id="wechat-app-modal" style="background:#f4f2ed;">
         <div id="wechat-main-view" style="width:100%; height:100%; display:flex; flex-direction:column; position:relative;">
             <div class="wechat-header">
@@ -913,7 +859,7 @@
                 <span onclick="closeCharCreateModal()" style="cursor:pointer; font-size:16px;">✕</span>
             </div>
             <div class="modal-card-body">
-                <div class="js-upload-target avatar-upload" id="char-avatar-preview" style="margin:0 auto 10px auto; width:50px; height:50px;">上传头像</div>
+                <div class="avatar-upload" id="char-avatar-preview" onclick="uploadCharAvatar()" style="margin:0 auto 10px auto; width:50px; height:50px;">上传头像</div>
                 <input class="glass-input" id="char-field-name" placeholder="Name / 姓名">
                 <input class="glass-input" id="char-field-remark" placeholder="聊天页备注">
                 <input class="glass-input" id="char-field-gender" value="女" placeholder="性别">
