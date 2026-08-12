@@ -1,12 +1,12 @@
 /**
- * api-plugin.js - 意点机 API 与数据管理插件 (已修复滑动开关收起/折叠 Bug)
+ * api-plugin.js - 意点机 API 与数据管理插件 (含折叠展开、温度调节、预设管理)
  */
 (function () {
     // 1. 全局窗口控制
     window.openApiAppModal = function () {
         const modal = document.getElementById('api-app-modal');
         if (modal) {
-            modal.style.display = 'flex';
+            modal.classList.add('active');
             window.backToApiMenu();
         }
     };
@@ -14,7 +14,7 @@
     window.closeApiAppModal = function () {
         const modal = document.getElementById('api-app-modal');
         if (modal) {
-            modal.style.display = 'none';
+            modal.classList.remove('active');
         }
     };
 
@@ -36,7 +36,7 @@
         document.getElementById('api-nav-back').setAttribute('onclick', 'closeApiAppModal()');
     };
 
-    // 2. 纯粹根据开关选中状态精准控制展开/折叠（无重复触发与内联样式残留 Bug）
+    // 2. 开关折叠/展开控制
     window.toggleSubApi = function (type) {
         const toggle = document.getElementById(`toggle-${type}`);
         const body = document.getElementById(`body-${type}`);
@@ -154,7 +154,7 @@
     }
 
     async function refreshPresetDropdown() {
-        const presets = (await getStorage('api_presets')) || [];
+        const presets = (await window.getStorage('api_presets')) || [];
         const select = document.getElementById('api-preset-select');
         select.innerHTML = '<option value="">-- 选择或切换保存的预设 --</option>';
         presets.forEach(p => {
@@ -178,12 +178,12 @@
         bindFetch('fetch-models-image', 'image-url-input', 'image-key-input', 'image-model-select');
         bindFetch('fetch-models-general', 'general-url-input', 'general-key-input', 'general-model-select');
 
-        // 保存当前 API 完整配置
+        // 保存当前完整配置
         const saveAllBtn = document.getElementById('save-all-api-btn');
         if (saveAllBtn) {
             saveAllBtn.addEventListener('click', () => {
                 const config = getApiFormConfig();
-                saveStorage('current_api_config', config);
+                window.saveStorage('current_api_config', config);
                 alert('完整 API 配置已永久保存！');
             });
         }
@@ -196,7 +196,7 @@
                 const name = nameInput.value.trim() || ('预设 ' + new Date().toLocaleDateString());
                 const config = getApiFormConfig();
 
-                let presets = (await getStorage('api_presets')) || [];
+                let presets = (await window.getStorage('api_presets')) || [];
                 const existIdx = presets.findIndex(p => p.name === name);
                 if (existIdx >= 0) {
                     presets[existIdx].config = config;
@@ -204,7 +204,7 @@
                     presets.push({ id: 'preset_' + Date.now(), name, config });
                 }
 
-                await saveStorage('api_presets', presets);
+                await window.saveStorage('api_presets', presets);
                 await refreshPresetDropdown();
                 alert(`预设 "${name}" 保存成功！`);
             });
@@ -216,7 +216,7 @@
             presetSelect.addEventListener('change', async (e) => {
                 const presetId = e.target.value;
                 if (!presetId) return;
-                let presets = (await getStorage('api_presets')) || [];
+                let presets = (await window.getStorage('api_presets')) || [];
                 const target = presets.find(p => p.id === presetId);
                 if (target) {
                     setApiFormConfig(target.config);
@@ -229,7 +229,7 @@
         const randomPresetBtn = document.getElementById('random-preset-btn');
         if (randomPresetBtn) {
             randomPresetBtn.addEventListener('click', async () => {
-                let presets = (await getStorage('api_presets')) || [];
+                let presets = (await window.getStorage('api_presets')) || [];
                 if (presets.length === 0) {
                     alert('暂无保存的预设，请先输入名称并点击保存预设！');
                     return;
@@ -244,27 +244,27 @@
 
         setTimeout(async () => {
             await refreshPresetDropdown();
-            const currentConfig = await getStorage('current_api_config');
+            const currentConfig = await window.getStorage('current_api_config');
             if (currentConfig) setApiFormConfig(currentConfig);
         }, 300);
 
-        // MiniMax
+        // MiniMax 保存
         const saveMmBtn = document.getElementById('save-minimax-btn');
         if (saveMmBtn) {
             saveMmBtn.addEventListener('click', () => {
-                saveStorage('minimax_key', document.getElementById('minimax-key-input').value.trim());
-                saveStorage('minimax_group', document.getElementById('minimax-group-input').value.trim());
-                saveStorage('minimax_voice', document.getElementById('minimax-voice-select').value);
-                saveStorage('minimax_custom_voice', document.getElementById('minimax-custom-voice').value.trim());
+                window.saveStorage('minimax_key', document.getElementById('minimax-key-input').value.trim());
+                window.saveStorage('minimax_group', document.getElementById('minimax-group-input').value.trim());
+                window.saveStorage('minimax_voice', document.getElementById('minimax-voice-select').value);
+                window.saveStorage('minimax_custom_voice', document.getElementById('minimax-custom-voice').value.trim());
                 alert('MiniMax 配置已成功保存！');
             });
         }
 
-        // 备份导入导出
+        // 数据导出
         const exportBtn = document.getElementById('export-json-btn');
         if (exportBtn) {
             exportBtn.addEventListener('click', async () => {
-                const allData = await getAllStorage();
+                const allData = await window.getAllStorage();
                 const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(blob);
@@ -273,6 +273,7 @@
             });
         }
 
+        // 数据导入
         const triggerImportBtn = document.getElementById('trigger-import-json-btn');
         const importInput = document.getElementById('import-json-input');
         if (triggerImportBtn && importInput) {
@@ -284,7 +285,7 @@
                         try {
                             const importedObj = JSON.parse(evt.target.result);
                             for (const [k, v] of Object.entries(importedObj)) {
-                                saveStorage(k, v);
+                                window.saveStorage(k, v);
                             }
                             alert('数据恢复成功，即将自动刷新！');
                             location.reload();
