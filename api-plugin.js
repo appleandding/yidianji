@@ -1,8 +1,8 @@
 /**
- * api-plugin.js - 意点机 API 与数据管理插件 (含预设管理与副 API 侧滑折叠)
+ * api-plugin.js - 意点机 API 与数据管理插件 (支持侧滑展开、多副API拉取与最新MiniMax模型)
  */
 (function () {
-    // 1. 全局导航控制
+    // 1. 全局窗口控制
     window.openApiAppModal = function () {
         const modal = document.getElementById('api-app-modal');
         if (modal) {
@@ -36,7 +36,24 @@
         document.getElementById('api-nav-back').setAttribute('onclick', 'closeApiAppModal()');
     };
 
-    // 2. 通用 API 模型拉取逻辑
+    // 2. 点击开关 100% 平滑展开/收起折叠框
+    window.toggleSubApi = function (type, event) {
+        if (event) event.stopPropagation();
+        const toggle = document.getElementById(`toggle-${type}`);
+        const body = document.getElementById(`body-${type}`);
+        
+        if (toggle && body) {
+            if (toggle.checked) {
+                body.style.display = 'flex';
+                setTimeout(() => body.classList.add('expanded'), 10);
+            } else {
+                body.classList.remove('expanded');
+                setTimeout(() => body.style.display = 'none', 250);
+            }
+        }
+    };
+
+    // 3. 通用 API 模型拉取逻辑
     async function fetchModelsForInput(urlInputId, keyInputId, selectId) {
         const url = (document.getElementById(urlInputId).value || 'https://api.openai.com/v1').trim();
         const key = (document.getElementById(keyInputId).value || '').trim();
@@ -47,7 +64,7 @@
             return;
         }
 
-        select.innerHTML = '<option value="">正在拉取模型...</option>';
+        select.innerHTML = '<option value="">正在拉取模型中...</option>';
         try {
             const res = await fetch(`${url.replace(/\/+$/, '')}/models`, {
                 headers: { 'Authorization': `Bearer ${key}` }
@@ -67,49 +84,37 @@
             }
         } catch (e) {
             select.innerHTML = '<option value="">拉取失败</option>';
-            alert('拉取失败，请检查 URL 与 Key');
+            alert('拉取失败，请检查网络或 URL / Key');
         }
     }
 
-    // 3. 收集与填充当前表单配置数据
+    // 4. 表单数据收集与填充
+    const subTypes = ['chat', 'memory', 'vision', 'image', 'general'];
+
     function getApiFormConfig() {
-        return {
+        const config = {
             main: {
                 url: document.getElementById('api-url-input').value.trim(),
                 key: document.getElementById('api-key-input').value.trim(),
                 model: document.getElementById('api-model-select').value
-            },
-            sub_memory: {
-                enabled: document.getElementById('toggle-memory').checked,
-                url: document.getElementById('memory-url-input').value.trim(),
-                key: document.getElementById('memory-key-input').value.trim(),
-                model: document.getElementById('memory-model-select').value
-            },
-            sub_vision: {
-                enabled: document.getElementById('toggle-vision').checked,
-                url: document.getElementById('vision-url-input').value.trim(),
-                key: document.getElementById('vision-key-input').value.trim(),
-                model: document.getElementById('vision-model-select').value
-            },
-            sub_image: {
-                enabled: document.getElementById('toggle-image').checked,
-                url: document.getElementById('image-url-input').value.trim(),
-                key: document.getElementById('image-key-input').value.trim(),
-                model: document.getElementById('image-model-input').value.trim()
-            },
-            sub_general: {
-                enabled: document.getElementById('toggle-general').checked,
-                url: document.getElementById('general-url-input').value.trim(),
-                key: document.getElementById('general-key-input').value.trim(),
-                model: document.getElementById('general-model-select').value
             }
         };
+
+        subTypes.forEach(type => {
+            config['sub_' + type] = {
+                enabled: document.getElementById(`toggle-${type}`).checked,
+                url: (document.getElementById(`${type}-url-input`) || {}).value || '',
+                key: (document.getElementById(`${type}-key-input`) || {}).value || '',
+                model: (document.getElementById(`${type}-model-select`) || {}).value || ''
+            };
+        });
+
+        return config;
     }
 
     function setApiFormConfig(config) {
         if (!config) return;
 
-        // 主 API
         if (config.main) {
             document.getElementById('api-url-input').value = config.main.url || '';
             document.getElementById('api-key-input').value = config.main.key || '';
@@ -118,37 +123,30 @@
             }
         }
 
-        // 副 API 辅助更新函数
-        const setSub = (type, data) => {
-            if (!data) return;
-            const toggle = document.getElementById(`toggle-${type}`);
-            const body = document.getElementById(`body-${type}`);
-            toggle.checked = !!data.enabled;
-            if (toggle.checked) {
-                body.classList.add('expanded');
-            } else {
-                body.classList.remove('expanded');
-            }
+        subTypes.forEach(type => {
+            const data = config['sub_' + type];
+            if (data) {
+                const toggle = document.getElementById(`toggle-${type}`);
+                const body = document.getElementById(`body-${type}`);
+                toggle.checked = !!data.enabled;
+                
+                if (toggle.checked) {
+                    body.style.display = 'flex';
+                    body.classList.add('expanded');
+                } else {
+                    body.classList.remove('expanded');
+                    body.style.display = 'none';
+                }
 
-            if (document.getElementById(`${type}-url-input`)) document.getElementById(`${type}-url-input`).value = data.url || '';
-            if (document.getElementById(`${type}-key-input`)) document.getElementById(`${type}-key-input`).value = data.key || '';
-            
-            if (type === 'image') {
-                if (document.getElementById('image-model-input')) document.getElementById('image-model-input').value = data.model || '';
-            } else {
+                if (document.getElementById(`${type}-url-input`)) document.getElementById(`${type}-url-input`).value = data.url || '';
+                if (document.getElementById(`${type}-key-input`)) document.getElementById(`${type}-key-input`).value = data.key || '';
                 if (data.model && document.getElementById(`${type}-model-select`)) {
                     document.getElementById(`${type}-model-select`).innerHTML = `<option value="${data.model}">${data.model}</option>`;
                 }
             }
-        };
-
-        setSub('memory', config.sub_memory);
-        setSub('vision', config.sub_vision);
-        setSub('image', config.sub_image);
-        setSub('general', config.sub_general);
+        });
     }
 
-    // 4. 预设管理与下拉同步
     async function refreshPresetDropdown() {
         const presets = (await getStorage('api_presets')) || [];
         const select = document.getElementById('api-preset-select');
@@ -161,34 +159,21 @@
         });
     }
 
-    // DOM 加载完成后绑定交互
+    // 5. 事件绑定
     document.addEventListener('DOMContentLoaded', function () {
-        // 绑定副 API 折叠开关滑动事件
-        ['memory', 'vision', 'image', 'general'].forEach(type => {
-            const toggle = document.getElementById(`toggle-${type}`);
-            const body = document.getElementById(`body-${type}`);
-            if (toggle && body) {
-                toggle.addEventListener('change', () => {
-                    if (toggle.checked) {
-                        body.classList.add('expanded');
-                    } else {
-                        body.classList.remove('expanded');
-                    }
-                });
-            }
-        });
-
-        // 绑定各个 API 的“拉取模型”按钮
+        // 绑定各 API 的拉取模型按钮
         const bindFetch = (btnId, urlId, keyId, selectId) => {
             const btn = document.getElementById(btnId);
             if (btn) btn.addEventListener('click', () => fetchModelsForInput(urlId, keyId, selectId));
         };
         bindFetch('fetch-models-main', 'api-url-input', 'api-key-input', 'api-model-select');
+        bindFetch('fetch-models-chat', 'chat-url-input', 'chat-key-input', 'chat-model-select');
         bindFetch('fetch-models-memory', 'memory-url-input', 'memory-key-input', 'memory-model-select');
         bindFetch('fetch-models-vision', 'vision-url-input', 'vision-key-input', 'vision-model-select');
+        bindFetch('fetch-models-image', 'image-url-input', 'image-key-input', 'image-model-select');
         bindFetch('fetch-models-general', 'general-url-input', 'general-key-input', 'general-model-select');
 
-        // 保存当前 API 完整配置到全局缓存
+        // 保存当前 API 完整配置
         const saveAllBtn = document.getElementById('save-all-api-btn');
         if (saveAllBtn) {
             saveAllBtn.addEventListener('click', () => {
@@ -198,7 +183,7 @@
             });
         }
 
-        // 保存为预设
+        // 保存预设
         const savePresetBtn = document.getElementById('save-preset-btn');
         if (savePresetBtn) {
             savePresetBtn.addEventListener('click', async () => {
@@ -220,7 +205,7 @@
             });
         }
 
-        // 下拉框切换预设
+        // 切换预设
         const presetSelect = document.getElementById('api-preset-select');
         if (presetSelect) {
             presetSelect.addEventListener('change', async (e) => {
@@ -252,14 +237,13 @@
             });
         }
 
-        // 初始化加载预设列表及恢复当前配置
         setTimeout(async () => {
             await refreshPresetDropdown();
             const currentConfig = await getStorage('current_api_config');
             if (currentConfig) setApiFormConfig(currentConfig);
         }, 300);
 
-        // MiniMax & 备份导出绑定
+        // MiniMax
         const saveMmBtn = document.getElementById('save-minimax-btn');
         if (saveMmBtn) {
             saveMmBtn.addEventListener('click', () => {
@@ -271,6 +255,7 @@
             });
         }
 
+        // 数据备份与恢复
         const exportBtn = document.getElementById('export-json-btn');
         if (exportBtn) {
             exportBtn.addEventListener('click', async () => {
