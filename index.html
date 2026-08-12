@@ -360,7 +360,6 @@
 
         .api-sub-panel { display: none; flex-direction: column; gap: 10px; }
 
-        /* API 预设管理样式 */
         .preset-card {
             background: rgba(255, 255, 255, 0.65);
             border: 1px solid rgba(255, 255, 255, 0.8);
@@ -371,7 +370,6 @@
         .preset-title { font-size: 11px; font-weight: bold; color: #333; }
         .preset-row-inputs { display: flex; gap: 8px; }
 
-        /* 副 API 侧滑开关卡片样式 */
         .sub-api-card {
             background: rgba(255, 255, 255, 0.65);
             border: 1px solid rgba(255, 255, 255, 0.8);
@@ -407,14 +405,15 @@
             transform: translateX(16px); background-color: #ffffff;
         }
 
-        /* 折叠/展开过渡效果 */
+        /* 侧滑展开平滑动画 */
         .sub-api-body {
-            max-height: 0; overflow: hidden; opacity: 0;
-            transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
-            display: flex; flex-direction: column; gap: 8px;
+            display: none; flex-direction: column; gap: 8px;
+            opacity: 0; max-height: 0; overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
         }
         .sub-api-body.expanded {
-            max-height: 280px; opacity: 1; margin-top: 8px;
+            display: flex !important; opacity: 1;
+            max-height: 400px; margin-top: 8px;
         }
 
         .glass-input-group { display: flex; flex-direction: column; gap: 4px; }
@@ -630,7 +629,7 @@
                 <div class="app-grid">
                     <div class="app-item">
                         <div class="app-icon">
-                            <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 4h2v5l-1-.75L9 9V4z"/></svg>
+                            <svg viewBox="0 0 24 24"><path d="M18 2H6c-1.1 0-2 .9-2 2v16c0 1.1 2 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zM9 4h2v5l-1-.75L9 9V4z"/></svg>
                         </div>
                         <span class="app-label" contenteditable="true" data-text-id="app_2_1">江晋</span>
                     </div>
@@ -748,7 +747,7 @@
                 </div>
             </div>
 
-            <!-- 子视图 1: API 配置 (含预设管理与 4 个副 API 侧滑折叠) -->
+            <!-- 子视图 1: API 配置 (含预设管理与 5 个副 API 侧滑折叠) -->
             <div class="api-sub-panel" id="panel-api">
                 <!-- API 预设管理卡片 -->
                 <div class="preset-card">
@@ -785,12 +784,29 @@
                     </div>
                 </div>
 
-                <!-- 副 API 1: 记忆总结 -->
+                <!-- 副 API 1: 聊天API (新增) -->
                 <div class="sub-api-card">
-                    <div class="glass-toggle-row">
+                    <div class="glass-toggle-row" onclick="toggleSubApi('chat', event)">
+                        <span class="sub-api-title">聊天API</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggle-chat" onchange="toggleSubApi('chat', event)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="sub-api-body" id="body-chat">
+                        <input class="glass-input" id="chat-url-input" placeholder="聊天 API Base URL">
+                        <input class="glass-input" type="password" id="chat-key-input" placeholder="API Key">
+                        <button class="glass-btn glass-btn-secondary" id="fetch-models-chat">拉取聊天模型</button>
+                        <select class="glass-select" id="chat-model-select"><option value="">选择模型</option></select>
+                    </div>
+                </div>
+
+                <!-- 副 API 2: 记忆总结 -->
+                <div class="sub-api-card">
+                    <div class="glass-toggle-row" onclick="toggleSubApi('memory', event)">
                         <span class="sub-api-title">副API：记忆总结</span>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="toggle-memory">
+                            <input type="checkbox" id="toggle-memory" onchange="toggleSubApi('memory', event)">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -802,12 +818,12 @@
                     </div>
                 </div>
 
-                <!-- 副 API 2: 识图 -->
+                <!-- 副 API 3: 识图 -->
                 <div class="sub-api-card">
-                    <div class="glass-toggle-row">
+                    <div class="glass-toggle-row" onclick="toggleSubApi('vision', event)">
                         <span class="sub-api-title">副API：识图</span>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="toggle-vision">
+                            <input type="checkbox" id="toggle-vision" onchange="toggleSubApi('vision', event)">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -819,28 +835,29 @@
                     </div>
                 </div>
 
-                <!-- 副 API 3: 生图 -->
+                <!-- 副 API 4: 生图 -->
                 <div class="sub-api-card">
-                    <div class="glass-toggle-row">
+                    <div class="glass-toggle-row" onclick="toggleSubApi('image', event)">
                         <span class="sub-api-title">生图API：生图</span>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="toggle-image">
+                            <input type="checkbox" id="toggle-image" onchange="toggleSubApi('image', event)">
                             <span class="slider"></span>
                         </label>
                     </div>
                     <div class="sub-api-body" id="body-image">
                         <input class="glass-input" id="image-url-input" placeholder="生图 API Base URL">
                         <input class="glass-input" type="password" id="image-key-input" placeholder="API Key">
-                        <input class="glass-input" id="image-model-input" placeholder="生图模型 ID (如 dall-e-3)">
+                        <button class="glass-btn glass-btn-secondary" id="fetch-models-image">拉取生图模型</button>
+                        <select class="glass-select" id="image-model-select"><option value="">选择模型</option></select>
                     </div>
                 </div>
 
-                <!-- 副 API 4: 通用 -->
+                <!-- 副 API 5: 通用 -->
                 <div class="sub-api-card">
-                    <div class="glass-toggle-row">
+                    <div class="glass-toggle-row" onclick="toggleSubApi('general', event)">
                         <span class="sub-api-title">通用副API：api</span>
                         <label class="toggle-switch">
-                            <input type="checkbox" id="toggle-general">
+                            <input type="checkbox" id="toggle-general" onchange="toggleSubApi('general', event)">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -855,7 +872,7 @@
                 <button class="glass-btn" id="save-all-api-btn">保存当前完整配置</button>
             </div>
 
-            <!-- 子视图 2: MiniMax 配置 -->
+            <!-- 子视图 2: MiniMax 配置 (更新为官方 Speech 系列最新模型) -->
             <div class="api-sub-panel" id="panel-minimax">
                 <div class="glass-input-group">
                     <label class="glass-input-label">MiniMax API Key</label>
@@ -866,19 +883,21 @@
                     <input class="glass-input" id="minimax-group-input" placeholder="输入 Group ID">
                 </div>
                 <div class="glass-input-group">
-                    <label class="glass-input-label">语音模型选择</label>
+                    <label class="glass-input-label">MiniMax 语音模型选择</label>
                     <select class="glass-select" id="minimax-voice-select">
-                        <option value="speech-01-turbo-250115">speech-01-turbo (高清低延迟)</option>
-                        <option value="speech-01-hd">speech-01-hd (高保真音质)</option>
-                        <option value="male-qn-qingse">青涩青年 (男声)</option>
-                        <option value="female-shaonv">甜美少女 (女声)</option>
-                        <option value="female-yujie">御姐音 (女声)</option>
-                        <option value="presenter_male">播音男声</option>
+                        <option value="speech-2.8-hd">speech-2.8-hd (最新 2.8 旗舰高清音质)</option>
+                        <option value="speech-2.8-turbo">speech-2.8-turbo (最新 2.8 低延迟极速)</option>
+                        <option value="speech-2.6-hd">speech-2.6-hd (2.6 深度情绪高保真)</option>
+                        <option value="speech-2.6-turbo">speech-2.6-turbo (2.6 低延迟极速)</option>
+                        <option value="speech-02-hd">speech-02-hd (02 多语言旗舰版)</option>
+                        <option value="speech-02-turbo">speech-02-turbo (02 极速版)</option>
+                        <option value="speech-01-hd">speech-01-hd (01 经典高清)</option>
+                        <option value="speech-01-turbo-250115">speech-01-turbo (01 极速版)</option>
                     </select>
                 </div>
                 <div class="glass-input-group">
-                    <label class="glass-input-label">自定义 Voice ID (可选)</label>
-                    <input class="glass-input" id="minimax-custom-voice" placeholder="输入自定义音色 ID">
+                    <label class="glass-input-label">自定义 Voice ID / 音色 ID (可选)</label>
+                    <input class="glass-input" id="minimax-custom-voice" placeholder="输入音色 ID (Voice ID)">
                 </div>
                 <button class="glass-btn" id="save-minimax-btn">保存 MiniMax 配置</button>
             </div>
@@ -1036,6 +1055,25 @@
 
         const savedAngelBg = await getStorage('angel_bg_image');
         if (savedAngelBg) applyAngelBg(savedAngelBg);
+
+        const apiUrl = await getStorage('api_url');
+        if (apiUrl) document.getElementById('api-url-input').value = apiUrl;
+        const apiKey = await getStorage('api_key');
+        if (apiKey) document.getElementById('api-key-input').value = apiKey;
+        const apiModel = await getStorage('api_model');
+        if (apiModel) {
+            const select = document.getElementById('api-model-select');
+            select.innerHTML = `<option value="${apiModel}">${apiModel}</option>`;
+        }
+
+        const mmKey = await getStorage('minimax_key');
+        if (mmKey) document.getElementById('minimax-key-input').value = mmKey;
+        const mmGroup = await getStorage('minimax_group');
+        if (mmGroup) document.getElementById('minimax-group-input').value = mmGroup;
+        const mmVoice = await getStorage('minimax_voice');
+        if (mmVoice) document.getElementById('minimax-voice-select').value = mmVoice;
+        const mmCustomVoice = await getStorage('minimax_custom_voice');
+        if (mmCustomVoice) document.getElementById('minimax-custom-voice').value = mmCustomVoice;
     }
 
     function applyMainBg(base64) {
